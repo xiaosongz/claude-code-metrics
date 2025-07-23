@@ -1,0 +1,24 @@
+# Prometheus data
+server/prometheus/data/
+
+# Grafana data
+server/grafana/data/
+
+# Environment files
+.env
+*.env
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

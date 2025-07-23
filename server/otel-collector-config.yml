@@ -1,0 +1,61 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  # Add resource attributes for client identification
+  resource:
+    attributes:
+      - key: service.name
+        value: claude-code
+        action: upsert
+      - key: telemetry.sdk.name
+        value: opentelemetry
+        action: upsert
+
+  # Add environment label from env var
+  attributes:
+    actions:
+      - key: environment
+        from_attribute: CLAUDE_ENV
+        action: upsert
+      - key: client_id
+        from_attribute: CLAUDE_CLIENT_ID
+        action: upsert
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: claude_code
+    const_labels:
+      source: "otel"
+    
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
+    tls:
+      insecure: true
+
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource, attributes]
+      exporters: [prometheus, prometheusremotewrite, logging]
+    
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [logging]
+
+  extensions: []
